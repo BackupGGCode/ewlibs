@@ -549,7 +549,10 @@ bool page_up_internal(event * _msg, codepoint_info_s  & start_cpi)
 
 	u32 max_cp = (scr_dim.l * scr_dim.c) * 2; // 4 is codec->max_codepoint_size(); in utf8
 	u64 save_start_off = editor_view_get_start_offset( view );
+	app_log << __FUNCTION__ << " : save_start_off to " << save_start_off << "\n";
+
 	if (save_start_off == 0) {
+		app_log << __FUNCTION__ << " : nothing to do" << save_start_off << "\n";
 		// nothing to do
 		return true;
 	}
@@ -559,7 +562,6 @@ bool page_up_internal(event * _msg, codepoint_info_s  & start_cpi)
 	u64 rewind_off;
 	eedit::core::rewind_and_resync_screen(buffer, view, max_cp, rewind_screen, save_start_off, &rewind_off);
 
-	app_log << __FUNCTION__ << " : save_start_off to " << save_start_off << "\n";
 	app_log << __FUNCTION__ << " : set rewind_off to " << rewind_off << "\n";
 
 	std::vector<std::pair<uint64_t,uint64_t>> screen_line_list;

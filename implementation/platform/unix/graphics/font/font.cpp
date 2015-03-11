@@ -119,7 +119,7 @@ public:
 			e.ft = nullptr;
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << "this = " << this << ", aface = " << aface << "\n";
+		//std::cerr << __PRETTY_FUNCTION__ << "this = " << this << ", aface = " << aface << "\n";
 		FT_Done_Face(aface);
 	}
 
@@ -339,7 +339,7 @@ bool font::get_codepoint_glyph_info(s32 codepoint, font_glyph_info & glyph_info)
 
 	bret = load_freetype_glyph_codepoint(this->data->aface, codepoint, ft_glyph);
 	if (bret == false) {
-		std::cerr << " load_freetype_glyph_codepoint(cp="<<codepoint << ", codepoint, ft_glyph) error\n";
+		//std::cerr << " load_freetype_glyph_codepoint(cp="<<codepoint << ", codepoint, ft_glyph) error\n";
 		return false;
 	}
 
@@ -386,7 +386,7 @@ bool font::private_data::renderGlyphOffscreen(s32 c, font_grid * ft_grid, s32 x_
 				charToDisplay,
 				ftData->ft_glyph);
 		if (bret == false) {
-			std::cerr << "get glyph for cp " << c << "\n";
+			//std::cerr << "get glyph for cp " << c << "\n";
 			throw std::runtime_error("FT_Get_Glyph failed");
 			return false;
 		}
@@ -502,7 +502,7 @@ bool font::private_data::renderGlyph(s32 c, font_grid * ft_grid, s32 x_pos, s32 
 				charToDisplay,
 				ftData->ft_glyph);
 		if (bret == false) {
-			std::cerr << "get glyph for cp " << c << "\n";
+			//std::cerr << "get glyph for cp " << c << "\n";
 			throw std::runtime_error("FT_Get_Glyph failed");
 			return false;
 		}
@@ -836,7 +836,7 @@ font::font(const char * filename,  u32 pxWidth, u32 pxHeight)
 	:
 	data(new private_data)
 {
-	std::cerr << __PRETTY_FUNCTION__ << " this = " << this << " " << filename <<  " " << pxWidth << " " << pxHeight << "\n";
+	//std::cerr << __PRETTY_FUNCTION__ << " this = " << this << " " << filename <<  " " << pxWidth << " " << pxHeight << "\n";
 
 	data->_filename = filename;
 	data->_pxWidth  = pxWidth;
@@ -886,12 +886,12 @@ bool font::font::private_data::texture__init()
 
 		NR_SUBTEX_PER_LINE = data->font_texHeight / data->subtex_H;
 
-		std::cerr << "NR_SUBTEX_PER_LINE  " << NR_SUBTEX_PER_LINE << "\n";
-		std::cerr << "font_texID = " << data->font_texID << "\n";
-		std::cerr << "font tex width  " << data->font_texWidth  << "\n";
-		std::cerr << "font tex height " << data->font_texHeight << "\n";
-		std::cerr << "font subtex width  " << data->subtex_W << "\n";
-		std::cerr << "font subtex height " << data->subtex_H << "\n";
+		//std::cerr << "NR_SUBTEX_PER_LINE  " << NR_SUBTEX_PER_LINE << "\n";
+		//std::cerr << "font_texID = " << data->font_texID << "\n";
+		//std::cerr << "font tex width  " << data->font_texWidth  << "\n";
+		//std::cerr << "font tex height " << data->font_texHeight << "\n";
+		//std::cerr << "font subtex width  " << data->subtex_W << "\n";
+		//std::cerr << "font subtex height " << data->subtex_H << "\n";
 
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data->font_texWidth, data->font_texHeight, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, 0);
@@ -1158,7 +1158,7 @@ bool font_print(ew::graphics::fonts::font & ft,
 
 font::~font()
 {
-	std::cerr << __PRETTY_FUNCTION__ << " this = " << this << "\n";
+	//std::cerr << __PRETTY_FUNCTION__ << " this = " << this << "\n";
 	// unload all textures
 	//delete data;
 	//data = 0;

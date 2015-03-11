@@ -116,7 +116,7 @@ struct build_layout_context_s {
 
 	u64                  start_offset = 0;
 
-	ew::graphics::fonts::font * ft; // TODO: font family, map<font>
+	ew::graphics::fonts::font * ft = nullptr; // TODO: font family, map<font>
 
 	u32 max_width_px;
 	u32 max_height_px;

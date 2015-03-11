@@ -3,6 +3,8 @@
 #include "../../core/module/module.hpp"
 
 #include "editor_view.h"
+#include "../../api/src/editor_view_internal.h"
+
 
 namespace eedit
 {
@@ -16,6 +18,7 @@ bool process_event(core_context_t * core_ctx, event * msg)
 	app_log << __PRETTY_FUNCTION__ << "\n";
 
 	bool ret = false;
+	bool is_input = false;
 
 //FIXME:	editor_view_reset_flags(msg->editor_buffer_id, msg->view_id);
 	reset_buffer_view_flags(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id);
@@ -47,6 +50,7 @@ bool process_event(core_context_t * core_ctx, event * msg)
 	case EDITOR_KEYBOARD_EVENT:
 	case EDITOR_POINTER_BUTTON_EVENT_FAMILY: {
 		app_log << __PRETTY_FUNCTION__ << " EDITOR_KEYB/POINTER EVENT\n";
+		is_input = true;
 
 		check_input_msg(msg);
 		ret = process_input_event(msg);
@@ -83,7 +87,6 @@ bool process_event(core_context_t * core_ctx, event * msg)
 
 	//    app_log <<  " call notify_buffer_changes : start_cpi = " << process_ev_ctx.start_cpi_ptr << "\n";
 	if (view) {
-
 		editor_view_get_start_cpi(view, &start_cpi_ref);
 		if (start_cpi_ref.used) {
 			start_cpi = &start_cpi_ref;
@@ -93,8 +96,6 @@ bool process_event(core_context_t * core_ctx, event * msg)
 		}
 	}
 
-	assert(!view || (start_cpi != nullptr)); // must always be explicit
-
 	notify_buffer_changes(msg, start_cpi, true);
 
 	release_event(msg);
@@ -103,7 +104,11 @@ bool process_event(core_context_t * core_ctx, event * msg)
 }
 
 
-///
+/*
+	The input map is represented by a tree-like structure
+	the first input event is match against the tree's root
+	if a match is found, the node is selected as the next root
+ */
 bool eval_input_event(event * base_msg)
 {
 	app_log << __PRETTY_FUNCTION__ << "\n";
@@ -126,20 +131,20 @@ bool eval_input_event(event * base_msg)
 	}
 
 
-	assert(0);
-#if 0
-	auto current_keymap = view->config.keymap;
-	std::vector< input_map_entry * > * cur_seq = view->config.last_keymap_entry;
+	editor_view * view = editor_view_get_internal_pointer(msg->view_id);
+
+	eedit::editor_input_event_map * current_keymap = view->input.cur_event_map;
+	std::vector< input_map_entry * > * cur_seq = view->input.last_keymap_entry;
 
 	// reset keymap ?
 	if (current_keymap == nullptr) {
-		auto it = view->config.input_event_table.find("default"); // <- get_major_mode()->get_default_inputmap();
-		if (it == view->config.input_event_table.end()) {
+		auto it = view->input.event_map.find("default"); // <- get_major_mode()->get_default_inputmap();
+		if (it == view->input.event_map.end()) {
 			assert(0);
 			return false;
 		}
 
-		current_keymap = it->second;
+		current_keymap = it->second; // type of it->second is eedit::editor_input_event_map *
 	}
 
 	// reset sequence ?
@@ -153,14 +158,14 @@ bool eval_input_event(event * base_msg)
 	if (!found) {
 		//
 		app_log << "no match : reset user keymap context\n";
-		view->config.keymap = nullptr;
-		view->config.last_keymap_entry = nullptr;
+		view->input.cur_event_map      = nullptr;
+		view->input.last_keymap_entry = nullptr;
 		return false;
 	}
 
 	// select next keymap
 	cur_seq = &(match_found->entries);
-	view->config.last_keymap_entry = cur_seq;
+	view->input.last_keymap_entry = cur_seq;
 
 	// exec action
 	if (match_found->action == nullptr) {
@@ -187,10 +192,10 @@ bool eval_input_event(event * base_msg)
 		app_log << "'" << match_found->action->fn_name << "' is not defined\n";
 	}
 
-	// match : reset user keymap context
-	view->config.keymap            = nullptr;
-	view->config.last_keymap_entry = nullptr;
-#endif
+
+	app_log << "match : reset user keymap context\n";
+	view->input.cur_event_map      = nullptr;
+	view->input.last_keymap_entry = nullptr;
 
 	return true;
 }

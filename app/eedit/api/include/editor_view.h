@@ -8,18 +8,17 @@
 extern "C" {
 #endif
 
-// create a view and bind to editor bufer
-editor_view_id_t editor_view_open(editor_view_id_t view);
+int editor_view_bind(editor_view_id_t view, editor_buffer_id_t ebid); // will allocate internal pointers
 int editor_view_close(editor_view_id_t view);
 
 
 int editor_view_set_dimension(editor_view_id_t view, const screen_dimension_t * dim);
 
 uint64_t editor_view_get_start_offset(editor_view_id_t view);
-uint64_t editor_view_set_start_offset(editor_view_id_t view, uint64_t offset);
+void     editor_view_set_start_offset(editor_view_id_t view, uint64_t offset);
 
 uint64_t editor_view_get_end_offset(editor_view_id_t view);
-uint64_t editor_view_set_end_offset(editor_view_id_t view, uint64_t offset);
+void     editor_view_set_end_offset(editor_view_id_t view, uint64_t offset);
 
 
 // view -> marks

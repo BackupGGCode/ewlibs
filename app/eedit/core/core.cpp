@@ -49,8 +49,6 @@
 namespace eedit
 {
 
-extern std::map<std::string, editor_input_event_map *> input_event_table; // FIXME: put in buffer context, add apis
-
 namespace core
 {
 
@@ -135,15 +133,12 @@ screen_t * get_new_screen_by_id(u64 screen_id)
 // compute the screen dimension according to editor buffer id / fonts
 bool  setup_screen_by_id(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid,  editor_view_id_t view, screen_dimension_t & dim)
 {
-	static int debug = 0;
+	app_log <<  __PRETTY_FUNCTION__ <<  " ---\n";
+
+	static int debug = 1;
 
 	if (editor_buffer_id == 0) {
 		app_log <<  __PRETTY_FUNCTION__ <<  " skipped editor_buffer_id == 0\n";
-		return false;
-	}
-
-	if (bid == 0) {
-		app_log <<  __PRETTY_FUNCTION__ <<  " skipped bid == 0\n";
 		return false;
 	}
 
@@ -154,7 +149,7 @@ bool  setup_screen_by_id(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t b
 
 
 	if (debug) {
-		app_log <<  __PRETTY_FUNCTION__ <<  " :\n";
+		app_log <<  __PRETTY_FUNCTION__ <<  "\n";
 		app_log <<  " editor_buffer_id  = " <<  editor_buffer_id <<  "\n";
 		app_log <<  " bid   = " <<  bid <<  "\n";
 		app_log <<  " view   = " <<  view <<  "\n";
@@ -166,15 +161,17 @@ bool  setup_screen_by_id(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t b
 
 	auto buffer = editor_buffer_check_id(editor_buffer_id);
 	if (!buffer) {
+		app_log <<  " editor_buffer_check_id error\n";
 		return false;
 	}
 
 	auto view2 = editor_buffer_check_view_id(editor_buffer_id, view);
-	if (view2 == 0) {
-		return false;
+	if (view2 != 0) {
+		app_log <<  " view already added to editor buffer\n";
+		return true;
 	}
 
-
+	app_log <<  " allocating view\n";
 	editor_buffer_add_view(editor_buffer_id, view, &dim);
 
 	// FIXME: use font space horizontal/vertical advance + inter-line to compute the maximum col/line to resize to
@@ -216,11 +213,16 @@ bool  setup_screen_by_id(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t b
 
 	screen_cache * cache;
 	if (!screen_id_map[ view ]) {
+		app_log <<  " allocating screen cache for view(" << view << ")\n";
+
+
 		cache = new screen_cache;
 		screen_id_map[ view ] = cache;
 		assert(cache->last_screen == nullptr);
 
 	} else {
+		app_log <<  " reusing screen cache for view(" << view << ")\n";
+
 		cache = screen_id_map[ view ];
 	}
 
@@ -497,7 +499,6 @@ void register_core_modules_function()
 
 void main(std::shared_ptr<application> app)
 {
-	//
 	{
 		std::lock_guard<std::mutex> lock(core_ctx.m_mtx);
 		if (core_ctx.core_started == true) {
@@ -543,7 +544,6 @@ void main(std::shared_ptr<application> app)
 
 			// --nr;
 			nr = core_ctx.m_msg_queue.size();
-
 		}
 	}
 

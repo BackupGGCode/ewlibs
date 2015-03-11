@@ -33,7 +33,8 @@ bool byte_mode_buffer_init(build_layout_context_t * blayout_ctx, filter_context_
 	assert(ctx->bid);
 
 	int ret = byte_buffer_size(ctx->bid, &ctx->buf_size);
-	assert(ret == 0);
+	if (ret != 0)
+		return false;
 
 	app_log << __PRETTY_FUNCTION__ << " cur_offset = " << ctx->cur_offset << "\n";
 	app_log << __PRETTY_FUNCTION__ << " buf_size   = " << ctx->buf_size   << "\n";

@@ -212,7 +212,7 @@ extern "C" {
 		edbuf->view.insert(view);
 		app_log << " bind editor_view[edbuf("<<editor_buffer_id<<")] = " << view << "\n";
 
-//    editor_view_id_t editor_view_open(editor_buffer_id_t editor_buffer_id);
+		editor_view_bind(view, editor_buffer_id);
 		return 0;
 	}
 

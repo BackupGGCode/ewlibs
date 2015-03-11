@@ -38,9 +38,8 @@ build_layout_context_s::build_layout_context_s(
 		return;
 	}
 
-	auto ft = (ew::graphics::fonts::font *)editor_view_get_font(view);  // the font used to build the layout: FIXME: break opengl dep, add bold/italic etc...
+	ft = (ew::graphics::fonts::font *)editor_view_get_font(view);  // the font used to build the layout: FIXME: break opengl dep, add bold/italic etc...
 	assert(ft);
-
 
 	codec_id = editor_view_get_codec_id(view);
 	io_ctx = codec_io_ctx_s {editor_buffer_id, bid, codec_id, 0};
