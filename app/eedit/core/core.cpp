@@ -133,12 +133,12 @@ screen_t * get_new_screen_by_id(u64 screen_id)
 ////////////////////////////////////////////////////////////////////////////////
 
 // compute the screen dimension according to editor buffer id / fonts
-bool  setup_screen_by_id(editor_buffer_id_t ebid, byte_buffer_id_t bid,  editor_view_id_t view, screen_dimension_t & dim)
+bool  setup_screen_by_id(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid,  editor_view_id_t view, screen_dimension_t & dim)
 {
 	static int debug = 0;
 
-	if (ebid == 0) {
-		app_log <<  __PRETTY_FUNCTION__ <<  " skipped ebid == 0\n";
+	if (editor_buffer_id == 0) {
+		app_log <<  __PRETTY_FUNCTION__ <<  " skipped editor_buffer_id == 0\n";
 		return false;
 	}
 
@@ -155,7 +155,7 @@ bool  setup_screen_by_id(editor_buffer_id_t ebid, byte_buffer_id_t bid,  editor_
 
 	if (debug) {
 		app_log <<  __PRETTY_FUNCTION__ <<  " :\n";
-		app_log <<  " ebid  = " <<  ebid <<  "\n";
+		app_log <<  " editor_buffer_id  = " <<  editor_buffer_id <<  "\n";
 		app_log <<  " bid   = " <<  bid <<  "\n";
 		app_log <<  " view   = " <<  view <<  "\n";
 		app_log <<  " dim.w = " <<  dim.w <<  ", ";
@@ -164,18 +164,18 @@ bool  setup_screen_by_id(editor_buffer_id_t ebid, byte_buffer_id_t bid,  editor_
 		app_log <<  " dim.l = " <<  dim.l <<  "\n";
 	}
 
-	auto buffer = editor_buffer_check_id(ebid);
+	auto buffer = editor_buffer_check_id(editor_buffer_id);
 	if (!buffer) {
 		return false;
 	}
 
-	auto view2 = editor_buffer_check_view_id(ebid, view);
+	auto view2 = editor_buffer_check_view_id(editor_buffer_id, view);
 	if (view2 == 0) {
 		return false;
 	}
 
 
-	editor_buffer_add_view(ebid, view, &dim);
+	editor_buffer_add_view(editor_buffer_id, view, &dim);
 
 	// FIXME: use font space horizontal/vertical advance + inter-line to compute the maximum col/line to resize to
 	// get_font[' ']->width()
@@ -240,6 +240,36 @@ bool push_event(eedit::core::event * msg)
 		return false;
 	}
 
+	// check_editor_event
+	switch (msg->type & EDITOR_EVENT_TYPE_FAMILY_MASK) {
+
+	case EDITOR_APPLICATION_EVENT_FAMILY: {
+	break;
+
+	case EDITOR_KEYBOARD_EVENT:
+	case EDITOR_POINTER_BUTTON_EVENT_FAMILY: {
+		check_input_msg(msg);
+	}
+	break;
+
+	case EDITOR_BUILD_LAYOUT_EVENT: {
+		app_log << __PRETTY_FUNCTION__ << " EDITOR_BUILD_LAYOUT_EVENT\n";
+		check_input_msg(msg);
+	}
+	break;
+
+	case EDITOR_RPC_CALL_EVENT: {
+	}
+	break;
+
+	default: {
+		app_log <<  "core : sending : unhandled event type " <<  (void *)msg->type << "\n";
+		abort();
+	}
+	break;
+	}
+	}
+	
 	return  core_ctx.m_msg_queue.push(msg);
 }
 
@@ -313,14 +343,14 @@ struct selection_record_s selection_record;
 
 bool save_buffer(event * msg)
 {
-	//auto buffer = get_buffer_by_id(msg->buffer_id);
+	//auto buffer = get_buffer_by_id(msg->byte_buffer_id);
 
 	app_log << " SAVING buffer...\n";
 	u32 t0 = ew::core::time::get_ticks();
 	assert(0);
 	size_t sz = 0;
-	byte_buffer_size(msg->buffer_id, &sz);
-	// buffer_write_to_disk(msg->buffer_id, &sz);
+	byte_buffer_size( editor_buffer_get_byte_buffer_id(msg->editor_buffer_id), &sz);
+	// buffer_write_to_disk(msg->byte_buffer_id, &sz);
 //    buffer->txt_buffer()->save_buffer();
 	u32 t1 = ew::core::time::get_ticks();
 	app_log << " ok...\n";
@@ -334,7 +364,7 @@ bool save_buffer(event * msg)
 
 bool dump_buffer_log(event * msg)
 {
-	buffer_log_dump(msg->buffer_id);
+	buffer_log_dump(msg->byte_buffer_id);
 	return true;
 }
 
@@ -364,7 +394,10 @@ bool build_screen_layout(event * msg, const codepoint_info_s * start_cpi, screen
 	auto codec_id  = editor_view_get_codec_id(msg->view_id);
 	auto codec_ctx = editor_view_get_codec_ctx(msg->view_id);
 	struct codec_io_ctx_s io_ctx {
-		msg->editor_buffer_id, msg->buffer_id, codec_id, codec_ctx
+		msg->editor_buffer_id,
+		msg->byte_buffer_id,
+		codec_id,
+		codec_ctx
 	};
 
 	bool ret = build_screen_layout(&io_ctx, msg->view_id, start_cpi, scr);
@@ -382,11 +415,11 @@ bool notify_buffer_changes(event * msg, codepoint_info_s * start_cpi, bool send_
 {
 	bool notify = false;
 
-	if (ui_change_flag(msg->editor_buffer_id, msg->buffer_id, msg->view_id) ==  true) {
+	if (ui_change_flag(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id) ==  true) {
 		notify = true;
 	}
 
-	if (buffer_changed_flag(msg->editor_buffer_id, msg->buffer_id, msg->view_id) ==  true) {
+	if (buffer_changed_flag(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id) ==  true) {
 		notify = true;
 	}
 
@@ -417,14 +450,15 @@ bool notify_buffer_changes(event * msg, codepoint_info_s * start_cpi, bool send_
 
 bool process_build_layout_event(eedit::core::layout_event * msg)
 {
-	set_ui_change_flag(msg->editor_buffer_id, msg->buffer_id, msg->view_id);
+	set_ui_change_flag(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id);
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool check_input_msg(event * msg)
+bool check_input_msg(event* msg)
 {
+	assert(msg->editor_buffer_id);
 	assert(msg->view_id);
 	assert(msg->screen_dim.w);
 	assert(msg->screen_dim.h);

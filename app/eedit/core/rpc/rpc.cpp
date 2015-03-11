@@ -40,10 +40,9 @@ void get_buffer_id_list(eedit::core::rpc_call *request, int ac,  char * av[])
 	char * ans_av[1 + list.size()];
 	int i  = 1;
 	ans_av[0] = ew::utils::c_string_dup("get_buffer_id_list");
-	for (auto & buffer_info : list) {
+	for (auto & ebid : list) {
 		char buffer[32];
-		auto bid = editor_buffer_get_byte_buffer_id(buffer_info);
-		snprintf(buffer,  sizeof (buffer),  "%lu", (uint64_t)bid);
+		snprintf(buffer,  sizeof (buffer),  "%lu", (uint64_t)ebid);
 		ans_av[i] = ew::utils::c_string_dup(buffer);
 		++i;
 	}
@@ -60,15 +59,15 @@ void set_screen_id_start_offset(eedit::core::rpc_call *request, int ac,  char * 
 
 
 	msg->editor_buffer_id = request->editor_buffer_id;
-	msg->buffer_id        = request->buffer_id; //
+	msg->byte_buffer_id   = request->byte_buffer_id; //
 	msg->view_id          = request->view_id; //
 	msg->screen_dim       = request->screen_dim;
 
 	// TODO: move to offset, add offset to msg + resync flag ?
 	//       set resync flag
-	auto ebid = request->buffer_id;
+	auto editor_buffer_id = request->byte_buffer_id;
 
-	auto view  = editor_buffer_check_view_id(ebid, request->view_id);
+	auto view  = editor_buffer_check_view_id(editor_buffer_id, request->view_id);
 	if (!view)
 		return;
 
@@ -77,7 +76,7 @@ void set_screen_id_start_offset(eedit::core::rpc_call *request, int ac,  char * 
 
 	// check overflow
 	size_t buf_size;
-	byte_buffer_size(request->buffer_id, &buf_size);
+	byte_buffer_size(request->byte_buffer_id, &buf_size);
 	if (target_offset > buf_size)
 		target_offset = buf_size;
 
@@ -98,8 +97,8 @@ void set_screen_id_start_offset(eedit::core::rpc_call *request, int ac,  char * 
 	cpi.offset = target_offset;
 	cpi.used = true;
 
-	set_ui_next_screen_start_cpi(request->editor_buffer_id, request->buffer_id, request->view_id, &cpi);
-	set_ui_change_flag(request->editor_buffer_id, request->buffer_id, request->view_id);
+	set_ui_next_screen_start_cpi(request->editor_buffer_id, request->byte_buffer_id, request->view_id, &cpi);
+	set_ui_change_flag(request->editor_buffer_id, request->byte_buffer_id, request->view_id);
 }
 
 

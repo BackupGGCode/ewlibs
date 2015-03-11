@@ -13,12 +13,12 @@ namespace core
 
 
 build_layout_context_s::build_layout_context_s(
-	editor_buffer_id_t ebid_,
+	editor_buffer_id_t editor_buffer_id_,
 	byte_buffer_id_t bid_,
 	uint64_t sid_,
 	const codepoint_info_s * start_cpi_, screen_t * out_)
 	:
-	ebid(ebid_),
+	editor_buffer_id(editor_buffer_id_),
 	bid(bid_),
 	sid(sid_),
 	start_cpi(start_cpi_),
@@ -43,7 +43,7 @@ build_layout_context_s::build_layout_context_s(
 
 
 	codec_id = editor_view_get_codec_id(view);
-	io_ctx = codec_io_ctx_s {ebid, bid, codec_id, 0};
+	io_ctx = codec_io_ctx_s {editor_buffer_id, bid, codec_id, 0};
 
 	size_t buffer_sz = 0;
 	byte_buffer_size(bid, &buffer_sz);
@@ -319,7 +319,7 @@ bool build_screen_layout(struct codec_io_ctx_s * io_ctx, uint64_t sid, const cod
 
 	assert(sid);
 
-	build_layout_context_t blctx(io_ctx->ebid, io_ctx->bid, sid, start_cpi, out);
+	build_layout_context_t blctx(io_ctx->editor_buffer_id, io_ctx->bid, sid, start_cpi, out);
 
 	u32 t0 = ew::core::time::get_ticks();
 

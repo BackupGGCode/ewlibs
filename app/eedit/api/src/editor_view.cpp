@@ -16,10 +16,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 struct editor_view {
-	editor_view(editor_buffer_id_t ebid_);
+	editor_view(editor_buffer_id_t editor_buffer_id_);
 	~editor_view();
 
-	editor_buffer_id_t ebid = 0;
+	editor_buffer_id_t editor_buffer_id = 0;
 	editor_view_id_t   view = 0;
 	codec_id_t codec_id;
 
@@ -40,8 +40,8 @@ struct editor_view {
 /// local table
 static handle_index_allocator<struct editor_view> table;
 
-editor_view::editor_view(editor_buffer_id_t ebid_)
-	: ebid(ebid_)
+editor_view::editor_view(editor_buffer_id_t editor_buffer_id_)
+	: editor_buffer_id(editor_buffer_id_)
 {
 	app_log << "loading input map configuration\n";
 	auto bret = eedit::setup_default_input_map(input_event_table);
@@ -69,11 +69,11 @@ editor_view::~editor_view()
 extern "C" {
 
 	SHOW_SYMBOL
-	editor_view_id_t editor_view_open(editor_buffer_id_t ebid)
+	editor_view_id_t editor_view_open(editor_buffer_id_t editor_buffer_id)
 	{
 		editor_view * vptr;
 		editor_view_id_t view;
-		std::tie(vptr, view) = table.construct(ebid);
+		std::tie(vptr, view) = table.construct(editor_buffer_id);
 		if (!view) {
 			return INVALID_EDITOR_VIEW_ID;
 		}

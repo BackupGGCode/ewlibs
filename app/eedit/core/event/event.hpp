@@ -98,13 +98,9 @@ struct event {
 	event_address src;
 	event_address dst;
 
-
-	// replace uint64_t -> byte_buffer_id_t
 	editor_buffer_id_t editor_buffer_id = 0;
-	byte_buffer_id_t   buffer_id = 0;
-
-	// replace uint64_t -> screen_id_t
-	editor_view_id_t view_id = 0;
+	byte_buffer_id_t   byte_buffer_id   = 0;  // will be derived from editor_buffer_id
+	editor_view_id_t   view_id = 0;
 	screen_dimension_t screen_dim;
 
 public:

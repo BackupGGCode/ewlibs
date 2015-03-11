@@ -53,8 +53,8 @@ bool mark_move_backward(eedit::core::event * msg)
 
 	// build text codec context :
 	codec_io_ctx_s codec_io_ctx = {
-		.ebid = msg->editor_buffer_id,
-		.bid       = msg->buffer_id,
+		.editor_buffer_id = msg->editor_buffer_id,
+		.bid       = msg->byte_buffer_id,
 		.codec_id  = codec_id,
 		.codec_ctx = codec_ctx,
 	};
@@ -73,7 +73,7 @@ bool mark_move_backward(eedit::core::event * msg)
 	}
 
 	// FIXME: the screen may change or not, call when there is a change
-	set_ui_change_flag(msg->editor_buffer_id, msg->buffer_id, msg->view_id);
+	set_ui_change_flag(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id);
 	return true;
 }
 
@@ -101,8 +101,8 @@ bool mark_move_forward(eedit::core::event * msg)
 
 	// build text codec context :
 	struct codec_io_ctx_s text_codec_io_ctx {
-		msg->editor_buffer_id,
-		    msg->buffer_id,
+		    msg->editor_buffer_id,
+		    msg->byte_buffer_id,
 		    codec_id,
 		    codec_ctx
 	};
@@ -120,7 +120,7 @@ bool mark_move_forward(eedit::core::event * msg)
 	}
 
 	// FIXME: the screen may change or not, call when there is a change
-	set_ui_change_flag(msg->editor_buffer_id, msg->buffer_id, msg->view_id);
+	set_ui_change_flag(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id);
 	return true;
 
 }

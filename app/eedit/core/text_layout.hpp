@@ -105,10 +105,10 @@ namespace core
 // TODO :  build_layout_context_t -> build_layout_context_s
 struct build_layout_context_s {
 
-	build_layout_context_s(editor_buffer_id_t ebid_, byte_buffer_id_t bid_, uint64_t sid_, const codepoint_info_s * start_cpi_, screen_t * out_);
+	build_layout_context_s(editor_buffer_id_t editor_buffer_id_, byte_buffer_id_t bid_, uint64_t sid_, const codepoint_info_s * start_cpi_, screen_t * out_);
 
 	// ctx in
-	editor_buffer_id_t	ebid = 0;
+	editor_buffer_id_t	editor_buffer_id = 0;
 	byte_buffer_id_t	bid  = 0;
 	editor_view_id_t	sid  = 0;
 	codec_id_t              codec_id = 0;

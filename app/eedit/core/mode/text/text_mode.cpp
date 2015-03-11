@@ -200,7 +200,7 @@ bool goto_beginning_of_screen_line(event * _msg);
 ////////////////////////////////////////////////////////////////////////////////
 
 // page down until offset is on screen
-bool  resync_screen_layout(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_id_t view, screen_dimension_t & dim)
+bool  resync_screen_layout(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, editor_view_id_t view, screen_dimension_t & dim)
 {
 	auto screen = get_previous_screen_by_id(view);
 
@@ -221,7 +221,7 @@ bool  resync_screen_layout(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor
 	start_cpi.used = true;
 
 
-	codec_io_ctx_s io_ctx {ebid, bid, editor_view_get_codec_id(view), 0};
+	codec_io_ctx_s io_ctx {editor_buffer_id, bid, editor_view_get_codec_id(view), 0};
 
 	while (true) {
 		build_screen_layout(&io_ctx, view, &start_cpi, screen); // FIXME: send the last screen instead of rebuild :-)
@@ -236,7 +236,7 @@ bool  resync_screen_layout(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor
 		}
 	}
 
-	set_ui_change_flag(ebid, bid, view); // should be implicit when building new_screen ?
+	set_ui_change_flag(editor_buffer_id, bid, view); // should be implicit when building new_screen ?
 	return true;
 }
 
@@ -507,7 +507,7 @@ bool page_down_internal(eedit::core::event * _msg)
 	screen_get_last_cpinfo(screen, &last_cpinfo);
 
 	size_t buf_size;
-	byte_buffer_size(msg->buffer_id, &buf_size);
+	byte_buffer_size(msg->byte_buffer_id, &buf_size);
 
 	if (last_cpinfo->used && last_cpinfo->offset == buf_size) {
 		return true;
@@ -517,8 +517,8 @@ bool page_down_internal(eedit::core::event * _msg)
 
 	app_log << __PRETTY_FUNCTION__ << " : cpi->offset " << cpi->offset << "\n";
 
-	set_ui_change_flag(msg->editor_buffer_id,  msg->buffer_id, msg->view_id);
-	set_ui_next_screen_start_cpi(msg->editor_buffer_id, msg->buffer_id, msg->view_id, cpi);
+	set_ui_change_flag(msg->editor_buffer_id,  msg->byte_buffer_id, msg->view_id);
+	set_ui_next_screen_start_cpi(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id, cpi);
 
 	return true;
 }
@@ -540,7 +540,7 @@ bool page_up_internal(event * _msg, codepoint_info_s  & start_cpi)
 {
 	input_event * msg = (input_event *)_msg;
 
-	auto buffer = editor_buffer_check_id(msg->buffer_id);
+	auto buffer = editor_buffer_check_id(msg->byte_buffer_id);
 	auto view   = msg->view_id;
 	auto screen = get_previous_screen_by_id(msg->view_id);
 
@@ -595,8 +595,8 @@ bool page_up_internal(event * _msg, codepoint_info_s  & start_cpi)
 			cpi.used = true;
 			cpi.offset = screen_line_list[index].first;
 			//app_log << __PRETTY_FUNCTION__ << " NEW START : cpi.offset " << cpi.offset << "\n";
-			set_ui_change_flag(msg->editor_buffer_id, msg->buffer_id, msg->view_id);
-			set_ui_next_screen_start_cpi(msg->editor_buffer_id, msg->buffer_id, msg->view_id, &cpi);
+			set_ui_change_flag(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id);
+			set_ui_next_screen_start_cpi(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id, &cpi);
 			start_cpi = cpi;
 			editor_view_set_start_offset( view, cpi.offset );
 			return true;
@@ -655,8 +655,8 @@ bool goto_beginning_of_buffer(event * msg)
 	codepoint_info_reset(&cpi);
 	cpi.offset = 0;
 	cpi.used   = true;
-	set_ui_next_screen_start_cpi(msg->editor_buffer_id, msg->buffer_id, msg->view_id, &cpi);
-	set_ui_change_flag(msg->editor_buffer_id, msg->buffer_id, msg->view_id);
+	set_ui_next_screen_start_cpi(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id, &cpi);
+	set_ui_change_flag(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id);
 	return true;
 }
 
@@ -666,7 +666,7 @@ bool goto_end_of_buffer(event * msg)
 	auto view   = msg->view_id;
 
 	size_t buffer_sz;
-	byte_buffer_size(msg->buffer_id, &buffer_sz);
+	byte_buffer_size(msg->byte_buffer_id, &buffer_sz);
 
 	editor_view_set_start_offset(view, buffer_sz );
 
@@ -677,8 +677,8 @@ bool goto_end_of_buffer(event * msg)
 	codepoint_info_reset(&cpi);
 	cpi.offset = buffer_sz;
 	cpi.used   = true;
-	set_ui_next_screen_start_cpi(msg->editor_buffer_id, msg->buffer_id, msg->view_id, &cpi);
-	set_ui_change_flag(msg->editor_buffer_id, msg->buffer_id, msg->view_id);
+	set_ui_next_screen_start_cpi(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id, &cpi);
+	set_ui_change_flag(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id);
 	return true;
 }
 
@@ -754,7 +754,7 @@ bool to_previous_line(event * _msg)
 	app_log << __FUNCTION__ << "\n";
 
 	input_event * msg = (input_event *)_msg;
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	auto view = buffer->get_buffer_view_by_screen_id(msg->view_id);
 
 
@@ -770,7 +770,7 @@ bool to_previous_line(event * _msg)
 		it_to_previous_line(*buffer->rdr_end());
 	}
 
-	set_ui_change_flag(msg->buffer_id, msg->view_id);
+	set_ui_change_flag(msg->byte_buffer_id, msg->view_id);
 
 	return true;
 }
@@ -814,7 +814,7 @@ bool it_to_next_physical_line(text_buffer::iterator & ref)
 bool to_next_line(event * _msg)
 {
 	input_event * msg = (input_event *)_msg;
-	auto d = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto d = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 
 	it_to_next_physical_line(*d->cursor_it());
 
@@ -857,7 +857,7 @@ bool to_next_screen_line_by_offset(event * _msg, const u64 screen_offset, u64 & 
 	new_screen_offset = screen_offset;
 
 	input_event * msg = (input_event *)_msg;
-	auto ed_buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto ed_buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	auto previous_screen = get_previous_screen_by_id(_msg->view_id);
 
 	auto last_screen = previous_screen;
@@ -1018,7 +1018,7 @@ bool to_next_screen_line_by_offset(event * _msg, const u64 screen_offset, u64 & 
 // FIXME: remove cursor_it -> replace by mark list
 bool to_next_screen_line_internal(event * _msg, codepoint_info_s & next_start_cpi)
 {
-	auto buffer = get_buffer_info_by_ll_bid(_msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(_msg->byte_buffer_id);
 
 	u64 new_offset = buffer->cursor_it()->offset();
 	auto b = to_next_screen_line_by_offset(_msg, new_offset, new_offset, next_start_cpi);
@@ -1060,7 +1060,7 @@ bool to_previous_screen_line_internal(event * msg, codepoint_info_s ** next_star
 {
 	app_log << __PRETTY_FUNCTION__ << " : Enter\n";
 
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	auto screen = get_previous_screen_by_id(msg->view_id);
 
 	u64 offset = buffer->cursor_it()->offset();
@@ -1195,7 +1195,7 @@ bool goto_beginning_of_line(event * msg)
 {
 	app_log << __FUNCTION__ << "\n";
 
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	auto screen = get_previous_screen_by_id(msg->view_id);
 
 	screen_line_t * l;
@@ -1255,7 +1255,7 @@ bool goto_end_of_line(event * msg)
 {
 	// app_log << __FUNCTION__ << "\n";
 
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	auto screen = get_previous_screen_by_id(msg->view_id);
 
 	text_buffer::iterator & it = *buffer->cursor_it(); // take cursor ref
@@ -1351,7 +1351,7 @@ bool begin_selection(event * msg)
 
 	selection_record.use = true;
 
-	auto buff = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buff = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 
 
 	switch (msg->type & EDITOR_EVENT_TYPE_FAMILY_MASK) {
@@ -1408,7 +1408,7 @@ bool begin_selection(event * msg)
 bool end_selection(event * msg)
 {
 	// app_log << __FUNCTION__ << "\n";
-	auto buff = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buff = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	auto scr = get_previous_screen_by_id(msg->view_id);
 	selection_record.start_cpi = scr->first_cpinfo;
 	set_ui_next_screen_start_cpi(process_ev_ctx, &selection_record.start_cpi);
@@ -1433,7 +1433,7 @@ bool insert_codepoint(eedit::core::event * _msg)
 {
 	input_event * msg = static_cast<input_event *>(_msg);
 
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 
 	s32 codepoint = msg->ev->start_value;
 
@@ -1449,7 +1449,7 @@ bool insert_codepoint(eedit::core::event * _msg)
 	//    std::lock_guard < decltype(*buffer->txt_buffer()) > lock(*buffer->txt_buffer());
 
 	// the actual insert
-	buffer->txt_buffer()->insert_codepoint(msg->buffer_id, codepoint, it);
+	buffer->txt_buffer()->insert_codepoint(msg->byte_buffer_id, codepoint, it);
 
 	// update view cursors/marks
 	// should provide an atomatic refresh for registered iterators...
@@ -1500,7 +1500,7 @@ bool insert_newline(event * _msg)
 */
 bool  remove_current_char(event * msg)
 {
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 
 	std::lock_guard < decltype(*buffer->txt_buffer()) > lock(*buffer->txt_buffer());
 
@@ -1514,7 +1514,7 @@ bool  remove_current_char(event * msg)
 	u64 cursor_off    = buffer->cursor_it()->offset();
 
 	// the actual remove
-	buffer->txt_buffer()->remove_current_char(msg->buffer_id, *buffer->cursor_it());
+	buffer->txt_buffer()->remove_current_char(msg->byte_buffer_id, *buffer->cursor_it());
 
 	// restore cursors
 	*(buffer->rdr_begin()) = buffer->txt_buffer()->get_iterator(rdr_begin_off);
@@ -1536,7 +1536,7 @@ bool  remove_current_char(event * msg)
 // TODO: gfx_ctx->center_screen arround cursor = true;
 bool remove_previous_char(event * msg)
 {
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 
 	text_buffer::iterator & it = *buffer->cursor_it();
 
@@ -1555,7 +1555,7 @@ bool remove_previous_char(event * msg)
 // TODO: use intermediate cursor class, pass cursor as parameter
 bool to_beginning_of_line(event * msg)
 {
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 
 	// linear move
 	buffer->cursor_it()->toBeginningOfLine();
@@ -1568,7 +1568,7 @@ bool to_beginning_of_line(event * msg)
 
 bool to_end_of_line(event * msg)
 {
-	auto buffer = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buffer = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 
 	std::lock_guard < decltype(*buffer->txt_buffer()) > lock(*buffer->txt_buffer());
 
@@ -1608,7 +1608,7 @@ bool belong_to_word(const s32 c)
 // dump version : what behavior in fold ?
 bool right_word(event * msg)
 {
-	auto buff = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buff = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	u64 save_off = buff->cursor_it()->offset(); // push_mark // pop_mark -> mark_stack
 
 	auto end_off = buff->raw_buffer()->size();
@@ -1640,7 +1640,7 @@ bool right_word(event * msg)
 // dump version : what behavior in fold ?
 bool left_word(event * msg)
 {
-	auto buff = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buff = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	u64 save_off = buff->cursor_it()->offset(); // push_mark // pop_mark -> mark_stack
 	if (save_off == 0)
 		return true;
@@ -1686,7 +1686,7 @@ bool left_word(event * msg)
 
 bool mouse_wheel_up(event * msg)
 {
-	auto buff = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buff = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	u64 save_off = buff->cursor_it()->offset(); // push_mark // pop_mark -> mark_stack
 
 	for (int i = 0; i < 3; ++i) {
@@ -1711,7 +1711,7 @@ bool mouse_wheel_up(event * msg)
 
 bool mouse_wheel_down(event * msg)
 {
-	auto buff = get_buffer_info_by_ll_bid(msg->buffer_id);
+	auto buff = get_buffer_info_by_ll_bid(msg->byte_buffer_id);
 	u64 save_off = buff->cursor_it()->offset(); // push_mark // pop_mark -> mark_stack
 
 	for (int i = 0; i < 3; ++i) {

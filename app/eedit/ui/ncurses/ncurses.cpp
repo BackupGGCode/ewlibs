@@ -14,6 +14,9 @@
 #include "../../core/event/event.hpp"
 #include "../../core/input/event/input_event_map.hpp"
 #include "../../api/include/byte_buffer.h"
+#include "../../api/include/editor_buffer.h"
+#include "../../api/include/editor_view.h"
+
 #include "../../api/include/screen.h"
 
 // simple enough, no size checks
@@ -89,11 +92,12 @@ struct ncurses_ui_interface : public user_interface {
 	bool process_editor_new_rpc_answer_ui_event(eedit::core::rpc_answer * msg);
 	bool quit();
 
-	bool send_rpc_event(const int ac,  const char ** av,  byte_buffer_id_t buffer_id, u64 screen_id, const screen_dimension_t & screen_dim);
+	bool send_rpc_event(const int ac,  const char ** av, editor_buffer_id_t ebid, byte_buffer_id_t buffer_id, u64 screen_id, const screen_dimension_t & screen_dim);
 	bool send_build_layout_event(u32 w, u32 h) const;
 	eedit::input_event_s * ncurses_keycode_to_eedit_event(int keycode);
 
-	byte_buffer_id_t m_cur_bid = 0; // current buffer;
+	byte_buffer_id_t m_cur_ebid = 0; // current buffer;
+	editor_view_id_t m_cur_view_id = 0;
 
 	ui_state_e ui_state = request_buffer_id_list;
 
@@ -102,6 +106,8 @@ struct ncurses_ui_interface : public user_interface {
 	// TODO: int get_openned_buffers_ids(byte_buffer_id_t bids[], size_t max)
 };
 
+
+static ncurses_ui_interface * ncurses_ui = nullptr;
 
 ncurses_ui_interface::~ncurses_ui_interface()
 {
@@ -116,16 +122,16 @@ bool ncurses_ui_interface::setup(application * app)
 
 
 
-bool ncurses_ui_interface::send_rpc_event(const int ac,  const char ** av,  byte_buffer_id_t buffer_id, u64 screen_id, const screen_dimension_t & screen_dim)
+bool ncurses_ui_interface::send_rpc_event(const int ac,  const char ** av, editor_buffer_id_t ebid, byte_buffer_id_t buffer_id, u64 screen_id, const screen_dimension_t & screen_dim)
 {
 	auto msg       =  new eedit::core::rpc_call(ac, av);
 	msg->src.kind  =  EDITOR_ACTOR_UI;
 	msg->src.queue =  m_event_queue;  //  TODO: ctx ?
 	msg->dst.kind  =  EDITOR_ACTOR_CORE;
 
-	msg->editor_buffer_id  =  buffer_id;
-	msg->buffer_id         =  buffer_id;
-	msg->view_id         =  screen_id;
+	msg->editor_buffer_id  =  ebid;
+	msg->byte_buffer_id    =  buffer_id;
+	msg->view_id           =  screen_id;
 	msg->screen_dim        =  screen_dim;
 
 	assert(screen_dim.w);
@@ -137,7 +143,6 @@ bool ncurses_ui_interface::send_rpc_event(const int ac,  const char ** av,  byte
 	return true;
 }
 
-ncurses_ui_interface * ncurses_ui = nullptr;
 
 void sigint_handler(int sig)
 {
@@ -146,10 +151,11 @@ void sigint_handler(int sig)
 	int col;
 	getmaxyx(stdscr, row, col);
 
-	auto msg           = new eedit::core::keyboard_event();
-	msg->id            = 0; // FIXME: id++
-	msg->buffer_id     = 1;
-	msg->view_id     = 1;             //
+	auto msg              = new eedit::core::keyboard_event();
+	msg->id               = 0; // FIXME: id++
+	msg->editor_buffer_id = 0;
+	msg->byte_buffer_id   = 0;
+	msg->view_id          = 0;
 
 	msg->screen_dim.w = col * get_application()->font_width();
 	msg->screen_dim.h = row * get_application()->font_height();
@@ -180,12 +186,16 @@ bool ncurses_ui_interface::main_loop()
 
 	// init
 	initscr();
+	m_cur_view_id = (editor_view_id_t)stdscr;
+
+
 	keypad(stdscr, TRUE); /* for F1, arrow etc ... */
 	clear();
 	noecho();
 //	cbreak();/* Line buffering disabled. pass on everything */
 	raw();
 	halfdelay(1); // 20ms
+
 
 	// TODO: build state machine
 	int row;
@@ -202,6 +212,8 @@ bool ncurses_ui_interface::main_loop()
 
 	const char * func = "get_buffer_id_list";
 
+
+
 	screen_dimension_t scr_dim {
 		uint32_t(row),
 		uint32_t(col),
@@ -210,7 +222,7 @@ bool ncurses_ui_interface::main_loop()
 	};
 
 	ui_state = request_buffer_id_list;
-	send_rpc_event(1,  &func, 0, (u64)stdscr, scr_dim);
+	send_rpc_event(1,  &func, 0, 0, (u64)stdscr, scr_dim);
 
 	auto q = m_event_queue;
 
@@ -270,10 +282,11 @@ bool ncurses_ui_interface::main_loop()
 	::sleep(1);
 #endif
 
-	auto msg           = new eedit::core::keyboard_event();
-	msg->id            = 0; // FIXME: id++
-	msg->buffer_id     = 1;
-	msg->view_id     = 1;             //
+	auto msg              = new eedit::core::keyboard_event();
+	msg->id               = 0; // FIXME: id++
+	msg->editor_buffer_id = m_cur_ebid;
+	msg->byte_buffer_id   = 0;
+	msg->view_id          = m_cur_view_id;             //
 
 	msg->screen_dim.w = col * get_application()->font_width();
 	msg->screen_dim.h = row * get_application()->font_height();
@@ -581,7 +594,7 @@ bool ncurses_ui_interface::send_build_layout_event(u32 w, u32 h) const
 {
 	app_log << __PRETTY_FUNCTION__ << " ui -> core @" << ew::core::time::get_ticks() << "\n";
 
-	if (m_cur_bid ==  0) {
+	if (m_cur_ebid ==  0) {
 		app_log << __PRETTY_FUNCTION__ << " no buffer selected found" << "\n";
 		return false;
 	}
@@ -593,9 +606,9 @@ bool ncurses_ui_interface::send_build_layout_event(u32 w, u32 h) const
 	msg->src.queue       = m_event_queue;
 	msg->dst.kind        = EDITOR_ACTOR_CORE;
 
-
-	msg->buffer_id         = m_cur_bid;
-	msg->view_id         = (u64)1;
+	msg->editor_buffer_id  = m_cur_ebid;
+	msg->byte_buffer_id  = 0;
+	msg->view_id         = m_cur_view_id;
 
 	int row;
 	int col;
@@ -618,7 +631,6 @@ bool ncurses_ui_interface::process_editor_new_rpc_answer_ui_event(eedit::core::r
 {
 	app_log << __FUNCTION__ << "  recv " << msg->av[0] << "\n";
 
-	m_cur_bid = 1;
 	if (msg->ac == 0) {
 		assert(0);
 		return false;
@@ -633,9 +645,9 @@ bool ncurses_ui_interface::process_editor_new_rpc_answer_ui_event(eedit::core::r
 				return false;
 			}
 
-			this->m_cur_bid = atoi(msg->av[1]);
+			this->m_cur_ebid = atoi(msg->av[1]);
 
-			app_log << __PRETTY_FUNCTION__ << " select buffer_id " <<  m_cur_bid <<  "\n";
+			app_log << __PRETTY_FUNCTION__ << " select buffer_id " <<  m_cur_ebid <<  "\n";
 			send_build_layout_event(0,0);
 			ui_state = ui_ready; // FIXME: do this when the first layout is received
 		}

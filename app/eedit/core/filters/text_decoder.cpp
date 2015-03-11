@@ -107,13 +107,13 @@ bool text_decoder_filter(build_layout_context_t * blctx,
 
 	text_decoder_context_t * ctx = static_cast<text_decoder_context_t *>(ctx_);
 
-	editor_buffer_id_t ebid      = ctx->blayout_ctx->ebid;
+	editor_buffer_id_t editor_buffer_id      = ctx->blayout_ctx->editor_buffer_id;
 	byte_buffer_id_t   bid       = ctx->blayout_ctx->bid;
 	codec_id_t         codec_id  = ctx->blayout_ctx->codec_id;
 	codec_context_id_t codec_ctx = 0;
 
 	struct codec_io_ctx_s io_ctx {
-		ebid, bid, codec_id, codec_ctx
+		editor_buffer_id, bid, codec_id, codec_ctx
 	};
 
 

@@ -84,7 +84,7 @@ public:
 		msg->src.queue =  get_main_window()->event_queue();  //  TODO: ctx ?
 		msg->dst.kind  =  EDITOR_ACTOR_CORE;
 
-		msg->buffer_id  =  buffer_id;
+		msg->byte_buffer_id  =  buffer_id;
 		msg->view_id  =  screen_id;
 		msg->screen_dim =  screen_dim;
 
@@ -548,7 +548,7 @@ public:
 		msg->dst.kind        = EDITOR_ACTOR_CORE;
 
 		assert(m_have_buffer_id);
-		msg->buffer_id         = this->m_buffer_id; //
+		msg->byte_buffer_id  = this->m_buffer_id; //
 		msg->view_id         = this->m_screen_id; //
 
 		msg->screen_dim.w = width();
@@ -605,7 +605,7 @@ public:
 	{
 
 		msg->id            = m_last_msg_id++;
-		msg->buffer_id     = m_buffer_id;
+		msg->byte_buffer_id = m_buffer_id;
 		msg->view_id     = this->m_screen_id;             //
 		assert(msg->view_id);
 

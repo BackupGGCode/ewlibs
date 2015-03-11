@@ -86,10 +86,10 @@ screen_t * get_previous_screen_by_id(u64 id);
 
 screen_t * get_new_screen_by_id(u64 screen_id);
 
-bool resync_screen_layout(uint64_t ebid, uint64_t bid, u64 screen_id, screen_dimension_t & dim);
+bool resync_screen_layout(uint64_t editor_buffer_id, uint64_t bid, u64 screen_id, screen_dimension_t & dim);
 
 
-bool setup_screen_by_id(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_id_t sid, screen_dimension_t & dim);
+bool setup_screen_by_id(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, editor_view_id_t sid, screen_dimension_t & dim);
 
 void send_event_to_ui(const eedit::core::event * ev_in, eedit::core::event * ev_out);
 

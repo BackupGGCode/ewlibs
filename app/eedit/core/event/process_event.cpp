@@ -18,15 +18,19 @@ bool process_event(core_context_t * core_ctx, event * msg)
 	bool ret = false;
 
 //FIXME:	editor_view_reset_flags(msg->editor_buffer_id, msg->view_id);
-	reset_buffer_view_flags(msg->editor_buffer_id, msg->buffer_id, msg->view_id);
+	reset_buffer_view_flags(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id);
 	app_log << " reset_buffer_view_flags..ok\n";
 	// refresh screen cache
 
-	setup_screen_by_id(msg->editor_buffer_id, msg->buffer_id, msg->view_id, msg->screen_dim);
+	setup_screen_by_id(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id, msg->screen_dim);
 	app_log << " setup_screen_by_id..ok\n";
 
 	auto buffer = msg->editor_buffer_id;
 	auto view   = msg->view_id;
+
+
+	// fix message
+	msg->byte_buffer_id = editor_buffer_get_byte_buffer_id(buffer);
 
 
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
@@ -44,7 +48,6 @@ bool process_event(core_context_t * core_ctx, event * msg)
 	case EDITOR_POINTER_BUTTON_EVENT_FAMILY: {
 		app_log << __PRETTY_FUNCTION__ << " EDITOR_KEYB/POINTER EVENT\n";
 
-		assert(msg->buffer_id);
 		check_input_msg(msg);
 		ret = process_input_event(msg);
 	}
@@ -74,7 +77,7 @@ bool process_event(core_context_t * core_ctx, event * msg)
 	codepoint_info_s start_cpi_ref;
 
 	if (view && editor_view_get_ui_must_resync(view)) {
-		resync_screen_layout(msg->editor_buffer_id, msg->buffer_id, msg->view_id, msg->screen_dim);
+		resync_screen_layout(msg->editor_buffer_id, msg->byte_buffer_id, msg->view_id, msg->screen_dim);
 		//start_cpi = view->start_cpi_ptr; // temporary
 	}
 
@@ -111,7 +114,7 @@ bool eval_input_event(event * base_msg)
 
 	auto buffer = editor_buffer_check_id(msg->editor_buffer_id);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
-		app_log << "no buffer id " << msg->buffer_id << "\n";
+		app_log << "no buffer id " << msg->byte_buffer_id << "\n";
 		assert(0);
 		return true;
 	}

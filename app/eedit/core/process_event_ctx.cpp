@@ -11,9 +11,9 @@ namespace eedit
 namespace core
 {
 
-void reset_buffer_view_flags(editor_buffer_id_t ebid,  byte_buffer_id_t bid, editor_view_id_t view)
+void reset_buffer_view_flags(editor_buffer_id_t editor_buffer_id,  byte_buffer_id_t bid, editor_view_id_t view)
 {
-	auto buffer = editor_buffer_check_id(ebid);
+	auto buffer = editor_buffer_check_id(editor_buffer_id);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
 		// no buffer
 		return;
@@ -25,7 +25,7 @@ void reset_buffer_view_flags(editor_buffer_id_t ebid,  byte_buffer_id_t bid, edi
 		return;
 	}
 
-	editor_buffer_set_changed_flag(ebid, false);
+	editor_buffer_set_changed_flag(editor_buffer_id, false);
 	editor_view_set_region_changed_flag(view, false);
 	editor_view_set_ui_need_refresh(view, false);
 
@@ -33,9 +33,9 @@ void reset_buffer_view_flags(editor_buffer_id_t ebid,  byte_buffer_id_t bid, edi
 }
 
 
-void set_ui_next_screen_start_cpi(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_id_t view, const codepoint_info_s * cpi)
+void set_ui_next_screen_start_cpi(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, editor_view_id_t view, const codepoint_info_s * cpi)
 {
-	auto buffer = editor_buffer_check_id(ebid);
+	auto buffer = editor_buffer_check_id(editor_buffer_id);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
 		// no buffer
 		return;
@@ -56,9 +56,9 @@ void set_ui_next_screen_start_cpi(editor_buffer_id_t ebid, byte_buffer_id_t bid,
 	}
 }
 
-void set_ui_change_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_id_t view)
+void set_ui_change_flag(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, editor_view_id_t view)
 {
-	auto buffer = editor_buffer_check_id(ebid);
+	auto buffer = editor_buffer_check_id(editor_buffer_id);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
 		// no buffer
 		return;
@@ -74,9 +74,9 @@ void set_ui_change_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_vi
 }
 
 
-bool ui_change_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_id_t view)
+bool ui_change_flag(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, editor_view_id_t view)
 {
-	auto buffer = editor_buffer_check_id(ebid);
+	auto buffer = editor_buffer_check_id(editor_buffer_id);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
 		// no buffer
 		return false;
@@ -91,9 +91,9 @@ bool ui_change_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_i
 	return editor_view_get_ui_need_refresh(view);
 }
 
-void set_ui_must_resync_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_id_t view)
+void set_ui_must_resync_flag(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, editor_view_id_t view)
 {
-	auto buffer = editor_buffer_check_id(ebid);
+	auto buffer = editor_buffer_check_id(editor_buffer_id);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
 		// no buffer
 		return;
@@ -110,7 +110,7 @@ void set_ui_must_resync_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, edit
 	editor_view_set_ui_must_resync(view, true);
 }
 
-bool ui_must_resync_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_id_t view)
+bool ui_must_resync_flag(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, editor_view_id_t view)
 {
 	auto buffer = editor_buffer_check_id(bid);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
@@ -128,7 +128,7 @@ bool ui_must_resync_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_v
 
 
 
-void set_buffer_changed_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, uint64_t screen_id)
+void set_buffer_changed_flag(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, uint64_t screen_id)
 {
 	auto buffer = editor_buffer_check_id(bid);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
@@ -136,10 +136,10 @@ void set_buffer_changed_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, uint
 		return;
 	}
 
-	editor_buffer_set_changed_flag(ebid, true);
+	editor_buffer_set_changed_flag(editor_buffer_id, true);
 }
 
-bool buffer_changed_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, uint64_t screen_id)
+bool buffer_changed_flag(editor_buffer_id_t editor_buffer_id, byte_buffer_id_t bid, uint64_t screen_id)
 {
 	auto buffer = editor_buffer_check_id(bid);
 	if (buffer == INVALID_EDITOR_BUFFER_ID) {
@@ -147,7 +147,7 @@ bool buffer_changed_flag(editor_buffer_id_t ebid, byte_buffer_id_t bid, uint64_t
 		return false;
 	}
 
-	return  editor_buffer_get_changed_flag(ebid);
+	return  editor_buffer_get_changed_flag(editor_buffer_id);
 }
 
 }

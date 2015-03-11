@@ -390,10 +390,10 @@ const std::list< editor_buffer_id_t> &  application::buffer_desc_lst()
 std::pair<bool, editor_buffer_id_t> application::get_editor_buffer_by_byte_buffer_id(const byte_buffer_id_t id)
 {
 	// TOOD: use find/ array[id]
-	for (auto ebid : m_priv->m_buffer_desc_list) {
-		auto cur_bid = editor_buffer_get_byte_buffer_id(ebid);
+	for (auto editor_buffer_id : m_priv->m_buffer_desc_list) {
+		auto cur_bid = editor_buffer_get_byte_buffer_id(editor_buffer_id);
 		if (cur_bid == id) {
-			return std::pair<bool, editor_buffer_id_t>(true, ebid);
+			return std::pair<bool, editor_buffer_id_t>(true, editor_buffer_id);
 		}
 	}
 
@@ -607,24 +607,24 @@ bool application::application_private::setup_buffers()
 
 		// move this to editor_buffer_info ctor
 
-		editor_buffer_id_t ebid = editor_buffer_open(filename.c_str(), filename.c_str() /* buffer name */); // TODO "basename - [N]"
-		if (ebid == INVALID_EDITOR_BUFFER_ID) {
+		editor_buffer_id_t editor_buffer_id = editor_buffer_open(filename.c_str(), filename.c_str() /* buffer name */); // TODO "basename - [N]"
+		if (editor_buffer_id == INVALID_EDITOR_BUFFER_ID) {
 			assert(0);
 			continue;
 		}
 
-		auto bid = editor_buffer_get_byte_buffer_id(ebid);
+		auto bid = editor_buffer_get_byte_buffer_id(editor_buffer_id);
 		app_log << "allocated  bid['"<< filename  <<"'] = " << bid << "\n";
-		app_log << "allocated ebid['"<< filename  <<"'] = " << ebid << "\n";
+		app_log << "allocated editor_buffer_id['"<< filename  <<"'] = " << editor_buffer_id << "\n";
 
-		if (ebid == 0) {
+		if (editor_buffer_id == 0) {
 			app_log << " cannot prepare buffer for '" << filename << "'\n";
 			assert(0);
 			continue;
 		}
 
 		app_log << " prepare buffer for '" << filename << "'\n";
-		m_buffer_desc_list.emplace_back(ebid);
+		m_buffer_desc_list.emplace_back(editor_buffer_id);
 	}
 
 	// FIXME:
@@ -637,17 +637,17 @@ bool application::application_private::setup_buffers()
 		auto filename = "dev/null";
 		auto buffer_name = "dummy";
 
-		editor_buffer_id_t ebid = editor_buffer_open(filename, buffer_name); // TODO "basename - [N]"
-		if (ebid == INVALID_EDITOR_BUFFER_ID) {
+		editor_buffer_id_t editor_buffer_id = editor_buffer_open(filename, buffer_name); // TODO "basename - [N]"
+		if (editor_buffer_id == INVALID_EDITOR_BUFFER_ID) {
 			assert(0);
 			return false;
 		}
 
-		auto bid = editor_buffer_get_byte_buffer_id(ebid);
+		auto bid = editor_buffer_get_byte_buffer_id(editor_buffer_id);
 		app_log << "allocated  bid['"<< filename  <<"'] = " << bid << "\n";
-		app_log << "allocated ebid['"<< filename  <<"'] = " << ebid << "\n";
+		app_log << "allocated editor_buffer_id['"<< filename  <<"'] = " << editor_buffer_id << "\n";
 
-		if (ebid == 0) {
+		if (editor_buffer_id == 0) {
 			app_log << " cannot prepare buffer for '" << filename << "'\n";
 			assert(0);
 			return false;

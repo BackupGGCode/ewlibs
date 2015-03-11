@@ -60,7 +60,7 @@ struct editor_buffer_s {
 	}
 
 
-	editor_buffer_id_t ebid = 0;
+	editor_buffer_id_t editor_buffer_id = 0;
 	byte_buffer_id_t   bid  = 0;
 
 	std::string file_name;   /* file path */
@@ -141,9 +141,9 @@ editor_buffer_s::~editor_buffer_s()
 extern "C" {
 
 	SHOW_SYMBOL
-	byte_buffer_id_t editor_buffer_get_byte_buffer_id(editor_buffer_id_t ebid)
+	byte_buffer_id_t editor_buffer_get_byte_buffer_id(editor_buffer_id_t editor_buffer_id)
 	{
-		auto t = table.get(ebid);
+		auto t = table.get(editor_buffer_id);
 		if (t == nullptr)
 			return 0;
 
@@ -152,13 +152,13 @@ extern "C" {
 	}
 
 	SHOW_SYMBOL
-	editor_buffer_id_t editor_buffer_check_id(editor_buffer_id_t ebid)
+	editor_buffer_id_t editor_buffer_check_id(editor_buffer_id_t editor_buffer_id)
 	{
-		auto t = table.get(ebid);
+		auto t = table.get(editor_buffer_id);
 		if (t == nullptr)
 			return INVALID_EDITOR_BUFFER_ID;
 
-		return ebid;
+		return editor_buffer_id;
 	}
 
 	SHOW_SYMBOL
@@ -170,21 +170,21 @@ extern "C" {
 		}
 
 		editor_buffer_s * edbuf;
-		editor_buffer_id_t ebid;
-		std::tie(edbuf, ebid) = table.construct(bid, filename, buffer_name, ""); // TODO font handling
+		editor_buffer_id_t editor_buffer_id;
+		std::tie(edbuf, editor_buffer_id) = table.construct(bid, filename, buffer_name, ""); // TODO font handling
 
-		edbuf->ebid = ebid;
+		edbuf->editor_buffer_id = editor_buffer_id;
 
 		app_log << __PRETTY_FUNCTION__ << " allocated bid    = " << bid << "\n";
-		app_log << __PRETTY_FUNCTION__ << " allocated ebid   = " << ebid << "\n";
-		return ebid;
+		app_log << __PRETTY_FUNCTION__ << " allocated editor_buffer_id   = " << editor_buffer_id << "\n";
+		return editor_buffer_id;
 	}
 
 
 	SHOW_SYMBOL
-	editor_view_id_t editor_buffer_check_view_id(editor_buffer_id_t ebid, editor_view_id_t view)
+	editor_view_id_t editor_buffer_check_view_id(editor_buffer_id_t editor_buffer_id, editor_view_id_t view)
 	{
-		auto edbuf = table.get(ebid);
+		auto edbuf = table.get(editor_buffer_id);
 		if (edbuf == nullptr)
 			return 0;
 
@@ -197,29 +197,29 @@ extern "C" {
 	}
 
 	SHOW_SYMBOL
-	int	editor_buffer_add_view(editor_buffer_id_t ebid, editor_view_id_t view, screen_dimension_t * dim)
+	int	editor_buffer_add_view(editor_buffer_id_t editor_buffer_id, editor_view_id_t view, screen_dimension_t * dim)
 	{
-		auto edbuf = table.get(ebid);
+		auto edbuf = table.get(editor_buffer_id);
 		if (edbuf == nullptr)
 			return -1;
 
 		auto ret = edbuf->view.find(view);
 		if (ret != edbuf->view.end()) {
-			app_log << " found already binded editor_view[edbuf("<<ebid<<")] = " << view << "\n";
+			app_log << " found already binded editor_view[edbuf("<<editor_buffer_id<<")] = " << view << "\n";
 			return 0;
 		}
 
 		edbuf->view.insert(view);
-		app_log << " bind editor_view[edbuf("<<ebid<<")] = " << view << "\n";
+		app_log << " bind editor_view[edbuf("<<editor_buffer_id<<")] = " << view << "\n";
 
-//    editor_view_id_t editor_view_open(editor_buffer_id_t ebid);
+//    editor_view_id_t editor_view_open(editor_buffer_id_t editor_buffer_id);
 		return 0;
 	}
 
 	SHOW_SYMBOL
-	void editor_buffer_set_changed_flag(editor_buffer_id_t ebid, bool flag)
+	void editor_buffer_set_changed_flag(editor_buffer_id_t editor_buffer_id, bool flag)
 	{
-		auto edbuf = table.get(ebid);
+		auto edbuf = table.get(editor_buffer_id);
 		if (edbuf == nullptr)
 			return;
 
@@ -227,9 +227,9 @@ extern "C" {
 	}
 
 	SHOW_SYMBOL
-	bool editor_buffer_get_changed_flag(editor_buffer_id_t ebid)
+	bool editor_buffer_get_changed_flag(editor_buffer_id_t editor_buffer_id)
 	{
-		auto edbuf = table.get(ebid);
+		auto edbuf = table.get(editor_buffer_id);
 		if (edbuf == nullptr)
 			return false;
 
