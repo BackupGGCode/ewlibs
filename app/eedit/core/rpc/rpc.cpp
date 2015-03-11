@@ -58,6 +58,8 @@ void set_screen_id_start_offset(eedit::core::rpc_call *request, int ac,  char * 
 	msg->dst.kind        = EDITOR_ACTOR_CORE;
 
 
+	assert(request->byte_buffer_id);
+
 	msg->editor_buffer_id = request->editor_buffer_id;
 	msg->byte_buffer_id   = request->byte_buffer_id; //
 	msg->view_id          = request->view_id; //
@@ -65,11 +67,13 @@ void set_screen_id_start_offset(eedit::core::rpc_call *request, int ac,  char * 
 
 	// TODO: move to offset, add offset to msg + resync flag ?
 	//       set resync flag
-	auto editor_buffer_id = request->byte_buffer_id;
+	auto editor_buffer_id = request->editor_buffer_id;
 
 	auto view  = editor_buffer_check_view_id(editor_buffer_id, request->view_id);
-	if (!view)
+	if (!view) {
+		assert(0);
 		return;
+	}
 
 
 	u64 target_offset = atof(av[2]);

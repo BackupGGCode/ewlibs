@@ -77,14 +77,15 @@ public:
 		m_screen = nullptr;
 	}
 
-	bool send_rpc_event(const int ac,  const char ** av,  u32 buffer_id, u64 screen_id, const screen_dimension_t & screen_dim)
+	bool send_rpc_event(const int ac,  const char ** av,  editor_buffer_id_t ebid, byte_buffer_id_t bid, editor_view_id_t screen_id, const screen_dimension_t & screen_dim)
 	{
 		auto msg       =  new eedit::core::rpc_call(ac, av);
 		msg->src.kind  =  EDITOR_ACTOR_UI;
 		msg->src.queue =  get_main_window()->event_queue();  //  TODO: ctx ?
 		msg->dst.kind  =  EDITOR_ACTOR_CORE;
 
-		msg->byte_buffer_id  =  buffer_id;
+		msg->editor_buffer_id  =  ebid;
+		msg->byte_buffer_id  =  0;
 		msg->view_id  =  screen_id;
 		msg->screen_dim =  screen_dim;
 
@@ -113,7 +114,7 @@ public:
 		app_log << __PRETTY_FUNCTION__ << " send_rpc_call\n";
 
 		const char * func = "get_buffer_id_list";
-		send_rpc_event(1,  &func, 0, m_screen_id, m_screen_dim);
+		send_rpc_event(1,  &func, 0, 0, m_screen_id, m_screen_dim);
 		view_state = request_buffer_id_list;
 
 		return true;
@@ -548,6 +549,7 @@ public:
 		msg->dst.kind        = EDITOR_ACTOR_CORE;
 
 		assert(m_have_buffer_id);
+		msg->editor_buffer_id  = this->m_ebuffer_id; //
 		msg->byte_buffer_id  = this->m_buffer_id; //
 		msg->view_id         = this->m_screen_id; //
 
@@ -605,6 +607,8 @@ public:
 	{
 
 		msg->id            = m_last_msg_id++;
+
+		msg->editor_buffer_id = m_ebuffer_id;
 		msg->byte_buffer_id = m_buffer_id;
 		msg->view_id     = this->m_screen_id;             //
 		assert(msg->view_id);
@@ -751,8 +755,8 @@ public:
 		query_av[i] = &buffer[i][0];
 		++i;
 
-		// bid
-		snprintf(buffer[i],  sizeof (buffer[i]), "%u", this->m_buffer_id);
+		// ebid
+		snprintf(buffer[i],  sizeof (buffer[i]), "%lu", this->m_ebuffer_id);
 		query_av[i] = &buffer[i][0];
 		++i;
 
@@ -769,7 +773,7 @@ public:
 		++i;
 
 		app_log << __PRETTY_FUNCTION__ << " send rpc -> to core : offset("<<offset<<") : OK\n";
-		send_rpc_event(i, query_av, m_buffer_id, m_screen_id, m_screen_dim);
+		send_rpc_event(i, query_av, m_ebuffer_id, m_buffer_id, m_screen_id, m_screen_dim);
 
 		return true;
 	}
@@ -793,9 +797,10 @@ public:
 				}
 
 				this->m_have_buffer_id = 1;
-				this->m_buffer_id = atoi(msg->av[1]);
+				this->m_ebuffer_id = atoi(msg->av[1]);
+				this->m_buffer_id = 0;
 
-				app_log << __PRETTY_FUNCTION__ << " select buffer_id " <<  m_buffer_id <<  "\n";
+				app_log << __PRETTY_FUNCTION__ << " select buffer_id " <<  m_ebuffer_id <<  "\n";
 				view_state = initialized;
 				send_build_layout_event(width(), height());
 			}
@@ -826,9 +831,10 @@ private:
 	scroll_area     *     m_scrool_bar        = nullptr;
 
 	u32                                  m_last_msg_id    = 0;
-	u32                                  m_buffer_id      = 0;
+	editor_buffer_id_t                   m_ebuffer_id     = 0;
+	byte_buffer_id_t                     m_buffer_id      = 0;
 	bool                                 m_have_buffer_id = 0;
-	u64                                  m_screen_id      = 0;
+	editor_view_id_t                     m_screen_id      = 0;
 
 	screen_dimension_t        m_screen_dim;
 	screen_t *                m_screen = nullptr;
