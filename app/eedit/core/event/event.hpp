@@ -90,6 +90,14 @@ struct event_address {
 	event_queue<::eedit::core::event *> * queue = nullptr;
 };
 
+
+struct event_context {
+	editor_buffer_id_t editor_buffer_id = 0;
+	byte_buffer_id_t   byte_buffer_id   = 0;  // will be derived from editor_buffer_id
+	editor_view_id_t   view_id          = 0;
+	screen_dimension_t screen_dim;
+};
+
 struct event {
 	editor_event_type_e type = INVALID_EDITOR_EVENT;
 
@@ -98,9 +106,10 @@ struct event {
 	event_address src;
 	event_address dst;
 
+
 	editor_buffer_id_t editor_buffer_id = 0;
 	byte_buffer_id_t   byte_buffer_id   = 0;  // will be derived from editor_buffer_id
-	editor_view_id_t   view_id = 0;
+	editor_view_id_t   view_id          = 0;
 	screen_dimension_t screen_dim;
 
 public:

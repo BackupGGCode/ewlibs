@@ -244,32 +244,32 @@ bool push_event(eedit::core::event * msg)
 	switch (msg->type & EDITOR_EVENT_TYPE_FAMILY_MASK) {
 
 	case EDITOR_APPLICATION_EVENT_FAMILY: {
-	break;
+		break;
 
-	case EDITOR_KEYBOARD_EVENT:
-	case EDITOR_POINTER_BUTTON_EVENT_FAMILY: {
-		check_input_msg(msg);
-	}
-	break;
+		case EDITOR_KEYBOARD_EVENT:
+		case EDITOR_POINTER_BUTTON_EVENT_FAMILY: {
+			check_input_msg(msg);
+		}
+		break;
 
-	case EDITOR_BUILD_LAYOUT_EVENT: {
-		app_log << __PRETTY_FUNCTION__ << " EDITOR_BUILD_LAYOUT_EVENT\n";
-		check_input_msg(msg);
-	}
-	break;
+		case EDITOR_BUILD_LAYOUT_EVENT: {
+			app_log << __PRETTY_FUNCTION__ << " EDITOR_BUILD_LAYOUT_EVENT\n";
+			check_input_msg(msg);
+		}
+		break;
 
-	case EDITOR_RPC_CALL_EVENT: {
-	}
-	break;
+		case EDITOR_RPC_CALL_EVENT: {
+		}
+		break;
 
-	default: {
-		app_log <<  "core : sending : unhandled event type " <<  (void *)msg->type << "\n";
-		abort();
+		default: {
+			app_log <<  "core : sending : unhandled event type " <<  (void *)msg->type << "\n";
+			abort();
+		}
+		break;
 	}
-	break;
 	}
-	}
-	
+
 	return  core_ctx.m_msg_queue.push(msg);
 }
 
@@ -395,9 +395,9 @@ bool build_screen_layout(event * msg, const codepoint_info_s * start_cpi, screen
 	auto codec_ctx = editor_view_get_codec_ctx(msg->view_id);
 	struct codec_io_ctx_s io_ctx {
 		msg->editor_buffer_id,
-		msg->byte_buffer_id,
-		codec_id,
-		codec_ctx
+		    msg->byte_buffer_id,
+		    codec_id,
+		    codec_ctx
 	};
 
 	bool ret = build_screen_layout(&io_ctx, msg->view_id, start_cpi, scr);
